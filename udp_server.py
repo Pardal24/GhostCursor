@@ -1,7 +1,7 @@
 import socket
 
 #localIp = "172.31.161.108" #Linux
-localIp = "172.18.82.151"
+localIp = "localhost"
 localPort = 20001
 bufferSize = 1024
 

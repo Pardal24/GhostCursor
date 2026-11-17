@@ -4,7 +4,7 @@ msg = input("Enter a message: ")
 bytesToSend =  str.encode(msg)
 
 #serverAddrPort = ("172.31.161.108", 20001) #Linux
-serverAddrPort = ("172.18.82.151", 20001)
+serverAddrPort = ("localhost", 20001)
 bufferSize = 1024
 
 udp_client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
