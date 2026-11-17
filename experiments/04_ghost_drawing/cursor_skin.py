@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image, ImageTk
 
 # ---------------- settings ----------------
-CURSOR_PNG = Path(__file__).parent / "flower_cursor_48.png"
+CURSOR_PNG = Path(__file__).resolve().parents[2] / "assets" / "cursors" / "flower_cursor_48.png"
 CURSOR_HEIGHT = 32          # final size on screen, in pixels
 HOTSPOT = (0, 0)            # pixel in the RESIZED image where the "tip" is (top-left for a classic arrow)
 NAME = "Bela"
