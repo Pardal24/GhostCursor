@@ -24,7 +24,10 @@ GhostCursor/
     ├── 03_mouse_input/      # cursor.py: pynput mouse listener
     │                        # screenSize.py: screen size and DPI awareness test
     │                        # mouse_chat.py: send mouse events as JSON over UDP
-    └── 04_ghost_drawing/    # cursor_skin.py: draw ghost cursor + name tag with tkinter
+    └── 04_ghost_drawing/    # cursor_skin.py: draw ghost cursor + name tag in a tkinter window
+                             # cursor.py: floating, click-through ghost that follows your mouse
+                             # cursor_auto.py: ghost moving on its own along a circle (thread + queue)
+                             # send_cursor.py: send mouse moves over UDP, draw the other machine's ghost
 ```
 
 ## Setup
@@ -41,6 +44,11 @@ Run from the project root, for example:
 python experiments/02_chat/chat.py
 python experiments/03_mouse_input/mouse_chat.py
 python experiments/04_ghost_drawing/cursor_skin.py
+python experiments/04_ghost_drawing/send_cursor.py
 ```
 
-The chat and mouse_chat scripts ask for your name and the **other** machine's IP. They use UDP port 9999, so allow it through the firewall. Type `!q` to quit.
+- `chat.py`, `mouse_chat.py` and `send_cursor.py` ask for your name and the **other** machine's IP. They use UDP port 9999, so allow it through the firewall on both machines.
+- In `chat.py` and `mouse_chat.py`, type `!q` to quit.
+- The ghost cursor windows ignore clicks, so close `cursor.py`, `cursor_auto.py` and `send_cursor.py` with **Ctrl+C** in the terminal. `cursor.py` and `cursor_auto.py` also close on their own after 2 minutes.
+
+The experiments in `03_mouse_input` and `04_ghost_drawing` use Windows APIs (`ctypes.windll`), so they run on Windows only.
