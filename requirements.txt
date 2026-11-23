@@ -1,2 +1,2 @@
-pynput
-Pillow
+pynput>=1.7
+Pillow>=10.0

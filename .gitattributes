@@ -1,0 +1,5 @@
+# Normalize line endings in the repository (LF), regardless of OS
+* text=auto
+
+# Binary assets
+*.png binary
