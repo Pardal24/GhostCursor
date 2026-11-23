@@ -2,35 +2,25 @@ import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 import threading
-import socket
-from pynput import mouse
 import tkinter as tk
 import queue
 import time
-import signal
-import json
 from PIL import Image, ImageTk
 from pathlib import Path
+import ctypes.wintypes
+import signal
+import math
 
-name = input("What's your name?: ")
-otherIp = input("What's the IP you want to connect?: ")
-
-#-------------------- Setup ---------------------------
-if name.strip().lower() == "francisco":
-    CURSOR_PNG = Path(__file__).resolve().parents[2] / "assets" / "cursors" / "flower_cursor_48.png"
-    NAME = "Bela"
-    COLOR = "#eef43f"
-else:
-    CURSOR_PNG = Path(__file__).resolve().parents[2] / "assets" / "cursors" / "frog_cursor_48.png"
-    NAME = "Francisco"
-    COLOR = "#ef3f3f"
-
+# ---------------- settings ----------------
+CURSOR_PNG = Path(__file__).resolve().parents[2] / "assets" / "cursors" / "flower_cursor_48.png"
 CURSOR_HEIGHT = 32
 HOTSPOT = (0, 0)
+NAME = "Bela"
+COLOR = "#ff5fa2"
 KEY = "#010203"
 ALPHA_THRESHOLD = 128
 OFFSET = (0, 0)
-#COLOR = "#ff5fa2"
+RUN_SECONDS = 120
 
 # ---------------- Win32 constants ----------------
 user32 = ctypes.windll.user32
@@ -47,7 +37,6 @@ root = tk.Tk()
 root.overrideredirect(True)
 root.attributes("-topmost",True)
 root.config(bg=KEY)
-root.geometry("+-4000+-4000")
 canvas = tk.Canvas(root, bg=KEY, highlightthickness=0)
 canvas.pack()
 
@@ -68,6 +57,8 @@ canvas.tag_lower(pill, text)
 _, _, x1, y1 = canvas.bbox("all")
 canvas.config(width=x1 + 1, height=y1 + 1)
 
+# ---------------- make it click-through ----------------
+
 root.update_idletasks()                           # make sure the real Windows window exists now
 hwnd = user32.GetParent(root.winfo_id())          # the HWND of the top-level window
 
@@ -77,15 +68,26 @@ user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)   # 3. write them back
 
 root.attributes("-transparentcolor", KEY)         # (re)apply colour key AFTER changing styles
 
+# check it worked
+style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+print(f"HWND = {hwnd:#x}, extended style = {style:#010x}")
+print("click-through:", bool(style & WS_EX_TRANSPARENT), "| no-activate:", bool(style & WS_EX_NOACTIVATE))
 
-#--------------- Create connection --------------------
-port = 9999
-bufferSize = 1024
+#-------------------- Mouse pos generator ---------------------
+q = queue.Queue()
+def mouse_pos():
+    t0 = time.time()
+    while True:
+        t = time.time() - t0
+        x = int(W / 2 + (W / 3) * math.cos(t))      # a circle, one lap every ~6 s
+        y = int(H / 2 + (H / 3) * math.sin(t))
+        q.put((x, y))
+        time.sleep(0.005)
 
-server = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-server.bind(("", port))
+t = threading.Thread(target=mouse_pos, daemon=True)
+t.start()
 
-# ------------ movement + housekeeping ----------------
+# ---------------- movement + housekeeping ----------------
 def place(x, y):
     root.geometry(f"+{x - HOTSPOT[0]}+{y - HOTSPOT[1]}")
 
@@ -110,59 +112,13 @@ def follow():
         root.attributes("-topmost", True)
         root.lift()
         last_lift = now
+    if now - start > RUN_SECONDS:
+        root.destroy()
+        return
     root.after(16, follow)
 
-# ------------- Mouse Positions -----------------------
 
-q = queue.Queue()
-
-def send(msg):
-    server.sendto(json.dumps(msg).encode(), (otherIp, port))
-
-def normalized(x,y):
-    nx = x / (W-1)
-    ny = y / (H-1)
-    return min(max(nx, 0.0), 1.0), min(max(ny, 0.0), 1.0)
-
-def on_move(x,y):
-    nx, ny = normalized(x,y)
-    send({"t": "move", "x": nx, "y": ny})
-
-def receive():
-    while True:
-        try:
-            data, addr = server.recvfrom(bufferSize)
-            msg = json.loads(data)                   
-            t = msg["t"]
-            if t == "join":
-                print(f"{msg['name']} joined!")
-            elif t == "chat":
-                print(f"{msg['name']}: {msg['text']}")
-            elif t == "move":
-                #print(f"move  ({msg['x']:.3f}, {msg['y']:.3f})")
-                x = round(msg['x'] * (W - 1))
-                y = round(msg['y'] * (H - 1))
-                q.put((x,y))
-
-        except ConnectionResetError:
-            pass
-        except Exception as e:
-            print("error:", e)
-
-t = threading.Thread(target=receive, daemon=True)
-t.start()
-
-listener = mouse.Listener(                           
-    on_move=on_move)
-listener.start()
-
+# you can't click the ghost anymore -> close it with Ctrl+C in the terminal (or wait)
 signal.signal(signal.SIGINT, lambda *_: root.destroy())
-send({"t": "join", "name": name})
 follow()
 root.mainloop()
-
-listener.stop()
-server.close()
-
-
-

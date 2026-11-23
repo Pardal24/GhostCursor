@@ -32,7 +32,7 @@ def on_move(x, y):
 
 def on_click(x, y, button, pressed):
     nx, ny = to_normalize(x, y)
-    send({"t": "btn", "b": button.name, "down": pressed, "x": nx, "y": ny}) 
+    send({"t": "btn", "b": button.name, "down": pressed, "x": nx, "y": ny})
 
 def on_scroll(x, y, dx, dy):
     nx, ny = to_normalize(x, y)
@@ -42,7 +42,7 @@ def receive():
     while True:
         try:
             data, addr = server.recvfrom(bufferSize)
-            msg = json.loads(data)                   
+            msg = json.loads(data)
             t = msg["t"]
             if t == "join":
                 print(f"{msg['name']} joined!")
@@ -61,10 +61,10 @@ def receive():
 
 send({"t": "join", "name": name})
 
-t = threading.Thread(target=receive, daemon=True)   
+t = threading.Thread(target=receive, daemon=True)
 t.start()
 
-listener = mouse.Listener(                           
+listener = mouse.Listener(
     on_move=on_move,
     on_click=on_click,
     on_scroll=on_scroll)
@@ -76,5 +76,5 @@ while True:
         break
     send({"t": "chat", "name": name, "text": text})
 
-listener.stop()                                     
+listener.stop()
 server.close()

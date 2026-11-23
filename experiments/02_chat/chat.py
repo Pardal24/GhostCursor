@@ -24,13 +24,13 @@ def receive():
 
 udp_server.sendto(f"{name} join!".encode(), (otherIp, localPort))
 
-t1 = threading.Thread(target=receive, daemon=True)  
+t1 = threading.Thread(target=receive, daemon=True)
 t1.start()
 
 while True:
     message = input("")
     if message == "!q":
-        break                              
+        break
     udp_server.sendto(f"{name}: {message}".encode(), (otherIp, localPort))
 
-udp_server.close()                        
+udp_server.close()

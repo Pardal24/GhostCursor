@@ -21,5 +21,3 @@ while(True):
         msg_send = "Didn't received any message"
         bytesToSend = str.encode(msg_send)
         udp_server.sendto(bytesToSend,addr1)
-
-

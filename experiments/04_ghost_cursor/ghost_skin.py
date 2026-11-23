@@ -12,7 +12,7 @@ W, H = 500, 350             # canvas size for this test
 
 # ---------------- window + canvas ----------------
 root = tk.Tk()
-root.title("3.1 - ghost cursor drawing")
+root.title("Ghost cursor drawing test")
 canvas = tk.Canvas(root, width=W, height=H, bg="#202020", highlightthickness=0)
 canvas.pack()
 

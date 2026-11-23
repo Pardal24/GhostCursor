@@ -32,7 +32,7 @@ def cursor_pos():
     user32.GetCursorPos(ctypes.byref(pt))
     return pt.x, pt.y
 
-# ---------------- the floating window (same as 3.2) ----------------
+# ---------------- the floating window ----------------
 root = tk.Tk()
 root.overrideredirect(True)
 root.attributes("-topmost", True)
@@ -57,7 +57,7 @@ canvas.tag_lower(pill, text)
 _, _, x1, y1 = canvas.bbox("all")
 canvas.config(width=x1 + 1, height=y1 + 1)
 
-# ---------------- NEW: make it click-through ----------------
+# ---------------- make it click-through ----------------
 root.update_idletasks()                           # make sure the real Windows window exists now
 hwnd = user32.GetParent(root.winfo_id())          # the HWND of the top-level window
 
