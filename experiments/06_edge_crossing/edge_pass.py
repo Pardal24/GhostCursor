@@ -1,6 +1,7 @@
 import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
+from ctypes import wintypes
 import socket
 import queue
 from pynput import mouse, keyboard
@@ -11,7 +12,6 @@ from pathlib import Path
 import tkinter as tk
 import time
 import signal
-
 
 #-------------------- Setup Ghost Cursor ---------------------------
 CURSORS_DIR = Path(__file__).resolve().parents[2] / "assets" / "cursors"
@@ -46,6 +46,27 @@ HOLD_KEY = keyboard.Key.f8
 log = queue.Queue()
 parked = (0,0)
 reached = False
+
+#---------------------- Make cursor disappear --------------------
+# every system cursor shape Windows might show
+OCR_IDS = [32512, 32513, 32514, 32515, 32516, 32642, 32643,
+           32644, 32645, 32646, 32648, 32649, 32650]
+SPI_SETCURSORS = 0x0057
+
+user32.CreateCursor.restype = wintypes.HANDLE
+user32.CreateCursor.argtypes = [wintypes.HINSTANCE, ctypes.c_int, ctypes.c_int,
+                                ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p]
+user32.SetSystemCursor.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+
+def hide_cursor():
+    and_mask = (ctypes.c_ubyte * 128)(*([0xFF] * 128))
+    xor_mask = (ctypes.c_ubyte * 128)()
+    for ocr in OCR_IDS:
+        blank = user32.CreateCursor(None, 0, 0, 32, 32, and_mask, xor_mask)
+        user32.SetSystemCursor(blank, ocr)
+
+def show_cursor():
+    user32.SystemParametersInfoW(SPI_SETCURSORS, 0, None, 0)
 
 #----------------------- Tkinter ------------------------------
 
@@ -170,6 +191,8 @@ def mouse_filter(msg, data):
     global reached, parked
 
     if msg != WM_MOUSEMOVE:
+        if reached:
+            mouse_listener.suppress_event()   # while on the other screen: no clicks land here
         return
 
     if not reached:
@@ -179,6 +202,7 @@ def mouse_filter(msg, data):
             parked = (park_x, data.pt.y)
             ctypes.windll.user32.SetCursorPos(*parked)
             reached = True
+            hide_cursor()
             send({"t": "join", "x": 0 if side == "right" else 1, "y": data.pt.y/(H-1)})
             mouse_listener.suppress_event()
         return
@@ -198,6 +222,7 @@ def on_press(key):
     global reached
     if key == HOLD_KEY and reached:
         reached = False
+        show_cursor()
         send({"t": "panic"})
         user32.SetCursorPos(round(0.5 * (W - 1)), round(0.5 * (H - 1)))
 
@@ -224,6 +249,7 @@ def receive():
                 log.put(("move", msg["dx"], msg["dy"]))
             if t == "return":
                 reached = False
+                show_cursor()
                 edge_x = W - 10 if side == "right" else 10       # 10 px inside, so it doesn't re-trigger "reached"
                 user32.SetCursorPos(edge_x, round(msg["y"] * (H - 1)))
             if t == "panic":
@@ -276,8 +302,10 @@ if __name__ == "__main__":
     send({"t": "connect", "name": name, "cursor": my_cursor})
     follow()
 
-    root.mainloop()
-
-    server.close()
-    mouse_listener.stop()
-    kb_listener.stop()
+    try:
+        root.mainloop()
+    finally:
+        show_cursor()                     # always give the real cursor back, even after a crash
+        server.close()
+        mouse_listener.stop()
+        kb_listener.stop()

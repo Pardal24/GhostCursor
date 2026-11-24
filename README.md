@@ -62,7 +62,7 @@ GhostCursor/
 | `05_input_hooks/mouse_suppress.py` | Hold **F8** to block clicks and scroll system-wide (10 s safety limit) |
 | `06_edge_crossing/edge_detection.py` | Detect when the cursor hits the left or right screen edge |
 | `06_edge_crossing/edge_deltas.py` | At the edge, park the real cursor and read raw movement deltas (F8 releases it) |
-| `06_edge_crossing/edge_pass.py` | **Two machines:** cross the edge, steer a ghost cursor on the other PC, cross back to return (F8 = panic) |
+| `06_edge_crossing/edge_pass.py` | **Two machines:** cross the edge, steer a ghost cursor on the other PC, cross back to return. The local cursor is hidden and clicks are blocked while away (F8 = panic) |
 
 ## Requirements
 
