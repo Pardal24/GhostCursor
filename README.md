@@ -28,6 +28,7 @@ Share one mouse and keyboard between two Windows computers on the same local net
 - [x] Mirror the other machine's cursor live over UDP
 - [x] Low-level mouse hook: inspect, inject and block events
 - [x] Detect screen-edge crossing and hand the cursor over (and back)
+- [x] Inject a local mouse click with `SendInput`
 - [ ] Inject mouse and keyboard input on the remote machine (`SendInput`)
 - [ ] Combine everything into a single `ghost_cursor` program
 
@@ -42,7 +43,8 @@ GhostCursor/
 │   ├── 03_mouse_input/        # mouse listener, screen size/DPI, mouse events over UDP
 │   ├── 04_ghost_cursor/       # drawing the ghost cursor and sharing it over UDP
 │   ├── 05_input_hooks/        # low-level mouse hook, event injection and blocking
-│   └── 06_edge_crossing/      # screen-edge detection and passing the cursor between machines
+│   ├── 06_edge_crossing/      # screen-edge detection and passing the cursor between machines
+│   └── 07_input_injection/    # synthesizing real clicks with SendInput
 ├── requirements.txt
 └── README.md
 ```
@@ -63,6 +65,7 @@ GhostCursor/
 | `06_edge_crossing/edge_detection.py` | Detect when the cursor hits the left or right screen edge |
 | `06_edge_crossing/edge_deltas.py` | At the edge, park the real cursor and read raw movement deltas (F8 releases it) |
 | `06_edge_crossing/edge_pass.py` | **Two machines:** cross the edge, steer a ghost cursor on the other PC, cross back to return. The local cursor is hidden and clicks are blocked while away (F8 = panic) |
+| `07_input_injection/ghost_input.py` | Inject a real right-click at a screen position with `SendInput`, then restore the cursor |
 
 ## Requirements
 
